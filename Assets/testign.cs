@@ -147,80 +147,111 @@ public class testign : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            BotRandomChoose();
+            CalculateChannelImportance();
+            Channel bst = RetrieveBestChannel();
+
+            print(allChannels.IndexOf(bst));
+            Node pickedNode = null;
+
+            foreach (Node n in bst.nodes)
+            {
+                if (n.nodeType == NodeType.def)
+                {
+                    n.nodeType = NodeType.o;
+                    pickedNode = n;
+
+                    break;
+                }
+            }
+            print(pickedNode);
+
+            foreach (Channel cha in allChannels)
+            {
+                foreach (Node n in cha.nodes)
+                {
+                    if (n == pickedNode)
+                    {
+                        cha.bot++;
+                    }
+                }
+            }
+
+        }
+
+        if (Input.GetKeyDown(KeyCode.KeypadEnter))
+        {
+            int randomChannelIndex = Random.Range(0, 8);
+            Node pickedNode = null;
+
+            foreach (Node n in allChannels[randomChannelIndex].nodes)
+            {
+                if (n.nodeType == NodeType.def)
+                {
+                    n.nodeType = NodeType.o;
+                    pickedNode = n;
+
+                    break;
+                }
+            }
+
+            foreach (Channel cha in allChannels)
+            {
+                foreach (Node n in cha.nodes)
+                {
+                    if (n == pickedNode)
+                    {
+                        cha.bot++;
+                    }
+                }
+            }
         }
 
     }
-    private void BotRandomChoose()
+
+    private Channel RetrieveBestChannel()
+    {
+        int importance = -1;
+        Channel bestChannel = null;
+
+        foreach (Channel cha in allChannels)
+        {
+            if (cha.importance > importance)
+            {
+                importance = cha.importance;
+                bestChannel = cha;
+            }
+        }
+
+        return bestChannel;
+    }
+
+    private void CalculateChannelImportance()
     {
         foreach (Channel cha in allChannels)
         {
             if (cha.bot == 2 && cha.human == 0)
             {
-                print("check 1");
-                foreach (Node n in cha.nodes)
-                {
-                    if (n.nodeType == NodeType.def)
-                    {
-                        n.nodeType = NodeType.o;
-                        cha.bot++;
-
-                        return;
-                    }
-                }
+                cha.importance = 5;
             }
             else if (cha.bot == 0 && cha.human == 2)
             {
-                print("check 2");
-
-                foreach (Node n in cha.nodes)
-                {
-                    if (n.nodeType == NodeType.def)
-                    {
-                        n.nodeType = NodeType.o;
-                        cha.bot++;
-
-                        return;
-
-                    }
-                }
+                cha.importance = 4;
             }
             else if (cha.bot == 1 && cha.human == 0)
             {
-                print("check 3");
-
-                foreach (Node n in cha.nodes)
-                {
-                    if (n.nodeType == NodeType.def)
-                    {
-                        n.nodeType = NodeType.o;
-                        cha.bot++;
-
-                        return;
-
-                    }
-                }
+                cha.importance = 3;
             }
             else if (cha.bot == 0 && cha.human == 0)
             {
-                print("check 4");
-
-                foreach (Node n in cha.nodes)
-                {
-                    if (n.nodeType == NodeType.def)
-                    {
-                        n.nodeType = NodeType.o;
-                        cha.bot++;
-
-                        return;
-
-                    }
-                }
+                cha.importance = 2;
+            }
+            else if (cha.bot == 1 && cha.human == 1)
+            {
+                cha.importance = 1;
             }
             else
             {
-                print("check 5");
-
+                cha.importance = 0;
             }
         }
     }
@@ -281,7 +312,7 @@ public class Channel
     public Node[] nodes;
     public int human;
     public int bot;
-
+    public int importance;
 
     public Channel(Node[] nodes)
     {
