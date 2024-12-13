@@ -4,7 +4,7 @@ using UnityEngine;
 public class GameRuler : MonoBehaviour
 {
     private float nodeDiameter = 0.5f;
-    public Node[,] grid = new Node[3, 3];
+    public Node[,] grid;
     [HideInInspector] public Vector3 gridStartingPoint;
     [HideInInspector] public Vector3 gridrndPoint;
 
@@ -25,13 +25,14 @@ public class GameRuler : MonoBehaviour
 
     void Start()
     {
+        grid = new Node[3, 3];
         gridStartingPoint = new Vector3(-1, -2, 0);
         gridrndPoint = new Vector3(2, 1, 0);
 
         MakeGrid();
         Assignchannels();
 
-        Debug.Log("Who's turn it is yo?!");
+        Debug.Log(Random.Range(0, 2) + " should start game");
     }
 
     private void MakeGrid()

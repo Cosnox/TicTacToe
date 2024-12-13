@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/Start.unity
     guid: 0c1fcb30c0b59a3468809ceb1f365424
   - enabled: 1
-    path: Assets/Scenes/RobotMode.unity
+    path: Assets/Scenes/Friend.unity
+    guid: f090092087dbcf642b98eafb1c023aa2
+  - enabled: 1
+    path: Assets/Scenes/BotEasyMode.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/BotHardMode.unity
+    guid: c5a5103d75b66904290258e03437eead
   m_configObjects: {}
