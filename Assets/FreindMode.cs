@@ -1,136 +1,127 @@
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class FreindMode : MonoBehaviour
 {
-    public FriendNode[,] grid;
+    private FriendNode[,] grid = new FriendNode[3, 3];
     private float nodeDiameter = 0.5f;
     Vector3 gridStartingPoint = new Vector3(-1, -2, 0);
     Vector3 gridrndPoint = new Vector3(2, 1, 0);
 
+    int playerTurn = 0;
 
-    bool player1Turn = true;
-    bool player2Turn = false;
-
-
-    private FriendChannel horizontalChannel_1;
-    private FriendChannel horizontalChannel_2;
-    private FriendChannel horizontalChannel_3;
-
-    private FriendChannel verticalChannel_1;
-    private FriendChannel verticalChannel_2;
-    private FriendChannel verticalChannel_3;
-
-    private FriendChannel diagonalChannel_1;
-    private FriendChannel diagonalChannel_2;
-
-
-    public List<FriendChannel> allChannels = new List<FriendChannel>();
-
-
-
+    public FriendChannel[] allChannels;
 
     public GameObject xPrefab, oPrefab;
 
+    public Image player1TurnIndicator;
+    public Image player2TurnIndicator;
+
+    private bool isGameOver;
+    int TotalCo;
+
+    int player1Score, player2Score;
+    public TMPro.TextMeshProUGUI scoreText1, scoreText2;
 
 
-
+    public Transform parentxo;
     void Start()
     {
-        grid = new FriendNode[3, 3];
         MakeGrid();
         Assignchannels();
-    }
 
-    private bool isGameOver1()
-    {
-        foreach (FriendChannel c in allChannels)
-        {
-            if (c.player1Amount == 3)
-            {
-                return true;
-            }
-        }
-        return false;
+        playerTurn = Random.Range(1, 3);
+        SwitchPlayer();
     }
-
-    private bool isGameOver2()
-    {
-        foreach (FriendChannel c in allChannels)
-        {
-            if (c.player2Amount == 3)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Update is called once per frame
     void Update()
     {
-        if (player1Turn)
+        if (Input.GetMouseButtonDown(0) && !isGameOver)
         {
-            if (Input.GetMouseButtonDown(0) && !isGameOver1())
+            Vector3 mousePosInWorlCordinates = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            if (isMouseClikcInBoard(mousePosInWorlCordinates))
             {
-                Vector3 mp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                if (isMouseClikcInBoard(mp))
+                FriendNode retrivedNode = GetNodeBasedOffClickPos(mousePosInWorlCordinates);
+                if (retrivedNode.nodeType == FriendNodeType.def)
                 {
-                    FriendNode freindMode = GetNodeBasedOffClickPos(mp);
-                    if (freindMode.nodeType == FriendNodeType.def)
+                    AssignNodeToCorrespondingPlayer(retrivedNode);
+                    UpdateChannelNodesAmount(retrivedNode);
+                    InstatiateXO(retrivedNode);
+                    SwitchPlayer();
+                    TotalCo++;
+
+
+                    if (TotalCo == 9)
                     {
-                        freindMode.nodeType = FriendNodeType.player1;
-
-                        Update1(freindMode);
-
-                        if (!isGameOver1())
-                            SwitchPlayer();
-                        else
-                            print("player 1 done it");
-
-                        Instantiate(xPrefab, freindMode.position, Quaternion.Euler(0, 0, 45));
-
+                        isGameOver = true;
+                        Debug.LogError("Full");
+                    }
+                    else
+                    {
+                        foreach (FriendChannel c in allChannels)
+                        {
+                            if (c.player1NodeAmount == 3)
+                            {
+                                isGameOver = true;
+                                player1Score++;
+                                UpdateScoreBoarf();
+                            }
+                            else if (c.player2NodeAmount == 3)
+                            {
+                                isGameOver = true;
+                                player2Score++;
+                                UpdateScoreBoarf();
+                            }
+                        }
                     }
                 }
             }
         }
-        else if (player2Turn)
+
+        if (Input.GetKeyDown(KeyCode.Space))
+            ResetGame();
+    }
+
+    private void ResetGame()
+    {
+        MakeGrid();
+        Assignchannels();
+        SwitchPlayer();
+        foreach (Transform child in parentxo)
         {
-            if (Input.GetMouseButtonDown(0) && !isGameOver2())
-            {
-                Vector3 mp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                if (isMouseClikcInBoard(mp))
-                {
-                    FriendNode freindMode = GetNodeBasedOffClickPos(mp);
-                    if (freindMode.nodeType == FriendNodeType.def)
-                    {
-                        freindMode.nodeType = FriendNodeType.player2;
+            Destroy(child.gameObject);
+        }
+        TotalCo = 0;
+        isGameOver = false;
+    }
 
-                        Update2(freindMode);
+    private void UpdateScoreBoarf()
+    {
+        scoreText1.text = player1Score.ToString();
+        scoreText2.text = player2Score.ToString();
+    }
 
-                        if (!isGameOver2())
-                            SwitchPlayer();
-                        else
-                            print("player 2 done it");
-
-                        Instantiate(oPrefab, freindMode.position, Quaternion.identity);
-
-
-                    }
-                }
-            }
+    private void AssignNodeToCorrespondingPlayer(FriendNode frr)
+    {
+        if (playerTurn == 1)
+        {
+            frr.nodeType = FriendNodeType.player1;
+        }
+        else
+        {
+            frr.nodeType = FriendNodeType.player2;
         }
     }
 
-    private void SwitchPlayer()
+    private void InstatiateXO(FriendNode n)
     {
-        player1Turn = !player1Turn;
-        player2Turn = !player2Turn;
-    }
-
-    public void LoadStartScene()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Start");
+        if (playerTurn == 1)
+        {
+            Instantiate(xPrefab, n.position, Quaternion.Euler(0, 0, 45), parentxo);
+        }
+        else
+        {
+            Instantiate(oPrefab, n.position, Quaternion.Euler(0, 0, 45), parentxo);
+        }
     }
     private void MakeGrid()
     {
@@ -141,6 +132,76 @@ public class FreindMode : MonoBehaviour
                 grid[x, y] = new FriendNode(new Vector3(gridStartingPoint.x + x + nodeDiameter, gridStartingPoint.y + y + nodeDiameter), FriendNodeType.def);
             }
         }
+    }
+
+    private void Assignchannels()
+    {
+        allChannels = new FriendChannel[8];
+
+        allChannels[0] = new FriendChannel(new FriendNode[3]);
+        allChannels[0].nodes[0] = grid[0, 0];
+        allChannels[0].nodes[1] = grid[1, 0];
+        allChannels[0].nodes[2] = grid[2, 0];
+
+        allChannels[1] = new FriendChannel(new FriendNode[3]);
+        allChannels[1].nodes[0] = grid[0, 1];
+        allChannels[1].nodes[1] = grid[1, 1];
+        allChannels[1].nodes[2] = grid[2, 1];
+
+        allChannels[2] = new FriendChannel(new FriendNode[3]);
+        allChannels[2].nodes[0] = grid[0, 2];
+        allChannels[2].nodes[1] = grid[1, 2];
+        allChannels[2].nodes[2] = grid[2, 2];
+
+        allChannels[3] = new FriendChannel(new FriendNode[3]);
+        allChannels[3].nodes[0] = grid[0, 0];
+        allChannels[3].nodes[1] = grid[0, 1];
+        allChannels[3].nodes[2] = grid[0, 2];
+
+        allChannels[4] = new FriendChannel(new FriendNode[3]);
+        allChannels[4].nodes[0] = grid[1, 0];
+        allChannels[4].nodes[1] = grid[1, 1];
+        allChannels[4].nodes[2] = grid[1, 2];
+
+        allChannels[5] = new FriendChannel(new FriendNode[3]);
+        allChannels[5].nodes[0] = grid[2, 0];
+        allChannels[5].nodes[1] = grid[2, 1];
+        allChannels[5].nodes[2] = grid[2, 2];
+
+
+        allChannels[6] = new FriendChannel(new FriendNode[3]);
+        allChannels[6].nodes[0] = grid[0, 0];
+        allChannels[6].nodes[1] = grid[1, 1];
+        allChannels[6].nodes[2] = grid[2, 2];
+
+
+        allChannels[7] = new FriendChannel(new FriendNode[3]);
+        allChannels[7].nodes[0] = grid[2, 0];
+        allChannels[7].nodes[1] = grid[1, 1];
+        allChannels[7].nodes[2] = grid[0, 2];
+    }
+
+    private void SwitchPlayer()
+    {
+        if (playerTurn == 1)
+        {
+            playerTurn = 2;
+
+            player1TurnIndicator.color = Color.gray;
+            player2TurnIndicator.color = Color.green;
+        }
+        else
+        {
+            playerTurn = 1;
+
+            player1TurnIndicator.color = Color.red;
+            player2TurnIndicator.color = Color.gray;
+        }
+    }
+
+    public void LoadStartScene()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Home");
     }
     private bool isMouseClikcInBoard(Vector3 clickWorldPos)
     {
@@ -176,63 +237,8 @@ public class FreindMode : MonoBehaviour
         return grid[x, y];
     }
 
-    private void Assignchannels()
-    {
-        horizontalChannel_1 = new FriendChannel(new FriendNode[3]);
-        horizontalChannel_1.nodes[0] = grid[0, 0];
-        horizontalChannel_1.nodes[1] = grid[1, 0];
-        horizontalChannel_1.nodes[2] = grid[2, 0];
-        allChannels.Add(horizontalChannel_1);
 
-        horizontalChannel_2 = new FriendChannel(new FriendNode[3]);
-        horizontalChannel_2.nodes[0] = grid[0, 1];
-        horizontalChannel_2.nodes[1] = grid[1, 1];
-        horizontalChannel_2.nodes[2] = grid[2, 1];
-        allChannels.Add(horizontalChannel_2);
-
-        horizontalChannel_3 = new FriendChannel(new FriendNode[3]);
-        horizontalChannel_3.nodes[0] = grid[0, 2];
-        horizontalChannel_3.nodes[1] = grid[1, 2];
-        horizontalChannel_3.nodes[2] = grid[2, 2];
-        allChannels.Add(horizontalChannel_3);
-
-
-
-        verticalChannel_1 = new FriendChannel(new FriendNode[3]);
-        verticalChannel_1.nodes[0] = grid[0, 0];
-        verticalChannel_1.nodes[1] = grid[0, 1];
-        verticalChannel_1.nodes[2] = grid[0, 2];
-        allChannels.Add(verticalChannel_1);
-
-        verticalChannel_2 = new FriendChannel(new FriendNode[3]);
-        verticalChannel_2.nodes[0] = grid[1, 0];
-        verticalChannel_2.nodes[1] = grid[1, 1];
-        verticalChannel_2.nodes[2] = grid[1, 2];
-        allChannels.Add(verticalChannel_2);
-
-
-        verticalChannel_3 = new FriendChannel(new FriendNode[3]);
-        verticalChannel_3.nodes[0] = grid[2, 0];
-        verticalChannel_3.nodes[1] = grid[2, 1];
-        verticalChannel_3.nodes[2] = grid[2, 2];
-        allChannels.Add(verticalChannel_3);
-
-
-
-        diagonalChannel_1 = new FriendChannel(new FriendNode[3]);
-        diagonalChannel_1.nodes[0] = grid[0, 0];
-        diagonalChannel_1.nodes[1] = grid[1, 1];
-        diagonalChannel_1.nodes[2] = grid[2, 2];
-        allChannels.Add(diagonalChannel_1);
-
-        diagonalChannel_2 = new FriendChannel(new FriendNode[3]);
-        diagonalChannel_2.nodes[0] = grid[2, 0];
-        diagonalChannel_2.nodes[1] = grid[1, 1];
-        diagonalChannel_2.nodes[2] = grid[0, 2];
-        allChannels.Add(diagonalChannel_2);
-    }
-
-    private void Update1(FriendNode pickedNode)
+    private void UpdateChannelNodesAmount(FriendNode pickedNode)
     {
         foreach (FriendChannel cha in allChannels)
         {
@@ -240,25 +246,14 @@ public class FreindMode : MonoBehaviour
             {
                 if (n == pickedNode)
                 {
-                    cha.player1Amount++;
+                    if (playerTurn == 1)
+                        cha.player1NodeAmount++;
+                    else
+                        cha.player2NodeAmount++;
                 }
             }
         }
     }
-    private void Update2(FriendNode pickedNode)
-    {
-        foreach (FriendChannel cha in allChannels)
-        {
-            foreach (FriendNode n in cha.nodes)
-            {
-                if (n == pickedNode)
-                {
-                    cha.player2Amount++;
-                }
-            }
-        }
-    }
-
 
     //private void OnDrawGizmos()
     //{
@@ -282,11 +277,12 @@ public class FreindMode : MonoBehaviour
     //        }
     //    }
     //}
+
 }
 
 
 public enum FriendNodeType { def, player1, player2 };
-
+[System.Serializable]
 public class FriendNode
 {
     public Vector3 position;
@@ -302,8 +298,8 @@ public class FriendNode
 public class FriendChannel
 {
     public FriendNode[] nodes;
-    public int player1Amount;
-    public int player2Amount;
+    public int player1NodeAmount;
+    public int player2NodeAmount;
 
     public FriendChannel(FriendNode[] nodes)
     {
