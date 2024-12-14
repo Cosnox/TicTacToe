@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 public class FreindMode : MonoBehaviour
 {
@@ -31,7 +30,7 @@ public class FreindMode : MonoBehaviour
 
 
 
-
+    public GameObject xPrefab, oPrefab;
 
 
 
@@ -89,6 +88,8 @@ public class FreindMode : MonoBehaviour
                         else
                             print("player 1 done it");
 
+                        Instantiate(xPrefab, freindMode.position, Quaternion.Euler(0, 0, 45));
+
                     }
                 }
             }
@@ -111,6 +112,9 @@ public class FreindMode : MonoBehaviour
                             SwitchPlayer();
                         else
                             print("player 2 done it");
+
+                        Instantiate(oPrefab, freindMode.position, Quaternion.identity);
+
 
                     }
                 }
@@ -256,28 +260,28 @@ public class FreindMode : MonoBehaviour
     }
 
 
-    private void OnDrawGizmos()
-    {
-        if (grid != null)
-        {
-            foreach (FriendNode node in grid)
-            {
-                if (node.nodeType == FriendNodeType.player1)
-                {
-                    Gizmos.color = Color.red;
+    //private void OnDrawGizmos()
+    //{
+    //    if (grid != null)
+    //    {
+    //        foreach (FriendNode node in grid)
+    //        {
+    //            if (node.nodeType == FriendNodeType.player1)
+    //            {
+    //                Gizmos.color = Color.red;
 
-                }
-                else if (node.nodeType == FriendNodeType.player2)
-                {
-                    Gizmos.color = Color.green;
-                }
-                else
-                    Gizmos.color = Color.black;
+    //            }
+    //            else if (node.nodeType == FriendNodeType.player2)
+    //            {
+    //                Gizmos.color = Color.green;
+    //            }
+    //            else
+    //                Gizmos.color = Color.black;
 
-                Gizmos.DrawWireCube(node.position, Vector3.one * .9f);
-            }
-        }
-    }
+    //            Gizmos.DrawWireCube(node.position, Vector3.one * .9f);
+    //        }
+    //    }
+    //}
 }
 
 

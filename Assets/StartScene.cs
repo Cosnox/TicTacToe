@@ -18,7 +18,7 @@ public class StartScene : MonoBehaviour
     {
         if (isListeningForInput)
         {
-            print("Checking");
+            //print("Checking");
 
             if (Input.GetKeyDown(KeyCode.Keypad1))
             {
